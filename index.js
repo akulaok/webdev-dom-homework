@@ -1,16 +1,36 @@
 "use strict";
+
+let isLoading = false;
+const LoadingComm = document.querySelector('.loading-comments');
+const addForm = document.querySelector('.add-form');
+const renderForm = (massage, isLoading) => {
+    if (isLoading === true) {
+        LoadingComm.innerHTML = massage;
+        LoadingComm.style.display = 'block';
+        addForm.style.visibility = 'hidden';
+    }
+    else {
+        LoadingComm.style.display = 'none';
+        addForm.style.visibility = 'visible';
+    }
+}
+
+let comments = [];
+const listCommentsElement = document.getElementById('comments-list');
 const addFormButton = document.getElementById("add-form-button");
 const nameInputElement = document.getElementById('add-form-name');
 const textInputElement = document.getElementById('add-form-text');
-const listCommentsElement = document.getElementById('comments-list');
 
-let comments = [];
-
-const getComments = () => {
+//получение коментариев гет-запрос на сервер
+const getComments = (massage) => {
+    renderForm(massage, true);
     fetch('https://wedev-api.sky.pro/api/v1/olga-okulova/comments', {
         method: 'GET',
-    }).then((response) => {
-        response.json().then((responseData) => {
+    })
+        .then((response) => {
+            return response.json()
+        })
+        .then((responseData) => {
             comments = responseData.comments.map((comment) => {
                 return {
                     name: comment.author.name,
@@ -21,11 +41,15 @@ const getComments = () => {
                 };
             });
             renderComents();
+            addFormButton.disabled = false;
+            addFormButton.style.backgroundColor = '#bcec30';
+            renderForm('',false);
         });
-    });
-};
-getComments();
+}
+getComments('Комментарии грузятся');
 
+
+//ответы на комннтарии
 const responseСomment = () => {
     const formComments = document.querySelectorAll(".comment");
     for (const formComment of formComments) {
@@ -37,6 +61,7 @@ const responseСomment = () => {
     }
 };
 
+//кнопка лайка
 const likeButtonListeners = () => {
     const likeElements = document.querySelectorAll(".like-button");
     for (const likeElement of likeElements) {
@@ -54,6 +79,7 @@ const likeButtonListeners = () => {
     }
 };
 
+//отображение коментариев
 const renderComents = () => {
     const commentsHtml = comments
         .map((comment, index) => {
@@ -81,8 +107,9 @@ const renderComents = () => {
     likeButtonListeners();
     responseСomment();
 };
-renderComents();
 
+renderComents();
+//отправка коментария на сервер
 addFormButton.addEventListener("click", () => {
     nameInputElement.classList.remove("error");
     textInputElement.classList.remove("error");
@@ -96,7 +123,9 @@ addFormButton.addEventListener("click", () => {
         textInputElement.classList.add("error");
         return;
     }
-
+    renderForm('Комментарий добавляется',true)
+    addFormButton.disabled = true;
+    addFormButton.style.backgroundColor = 'grey';
     fetch("https://wedev-api.sky.pro/api/v1/olga-okulova/comments", {
         method: "POST",
         body: JSON.stringify({
@@ -106,12 +135,13 @@ addFormButton.addEventListener("click", () => {
                 .replaceAll('<', `&lt;`)
                 .replaceAll('>', `&gt;`)
         })
-    }).then(() => {
-        getComments(); 
-        
-    });
+    })
+        .then(() => {
+            getComments('Комментарий добавляется');
+        });
+
     renderComents();
     nameInputElement.value = "";
 });
 
-console.log("It works!");
+
