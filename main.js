@@ -5,6 +5,7 @@ import { responseComment } from './responseComment.js';
 import { Comments } from './renderComments.js'
 import { changeFormButton, changeLikeButton } from './changeButtons.js';
 import { login, registration, setToken } from "./api.js";
+import { format } from "date-fns";
 
 export let userName = '';
 const nameInputElement = document.querySelector('.add-form-name');
@@ -91,7 +92,7 @@ const getComments = (message) => {
             comments = responseData.comments.map((comment) => {
                 return {
                     name: comment.author.name,
-                    date: new Date(comment.date).toLocaleString(),
+                    date: format(new Date(comment.date), 'yyyy-MM-dd hh.mm.ss'),
                     likesCount: comment.likes,
                     isLiked: comment.isLiked,
                     text: comment.text,
